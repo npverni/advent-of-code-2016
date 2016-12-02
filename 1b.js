@@ -18,50 +18,77 @@ const splitDir = dir => ({
   blockCount: parseInt(dir.slice(1)),
 });
 
-const nextCord = (f, x, y, i) => {
+export const coordsUpTo = (startCoord, endCoord) => {
+  if (startCoord.x === endCoord.x) {
+    if (endCoord.y > startCoord.y) {
+      return [...Array(endCoord.y - startCoord.y).keys()].map((c, i) => (
+        { x: startCoord.x, y: startCoord.y + (i + 1) }
+      ));
+    } else {
+      return [...Array(startCoord.y - endCoord.y).keys()].map((c, i) => (
+        { x: startCoord.x, y: startCoord.y - (i + 1) }
+      ));
+    }
+  } else {
+    if (endCoord.x > startCoord.x) {
+      return [...Array(endCoord.x - startCoord.x).keys()].map((c, i) => (
+        { x: startCoord.x + (i + 1), y: startCoord.y }
+      ));
+    } else {
+      return [...Array(startCoord.x - endCoord.x).keys()].map((c, i) => (
+        { x: startCoord.x - (i + 1), y: startCoord.y }
+      ));
+    }
+  }
+};
+
+const nextCords = (f, x, y, i) => {
   switch (f) {
     case 'N':
-      return { x: x + i, y: y };
+      return coordsUpTo({ x, y }, { x: x + i , y });
     case 'S':
-      return { x: x - i, y: y };
+      return coordsUpTo({ x, y }, { x: x - i , y });
     case 'E':
-      return { x: x, y: y + i };
+      return coordsUpTo({ x, y }, { x, y: y + i });
     case 'W':
-      return { x: x, y: y - i };
+      return coordsUpTo({ x, y }, { x, y: y - i });
   };
 };
 
-let pos = { x: 0, y: 0, facing: 'N' };
-let allPos = [];
-let dupe;
+export const findDupe = arr => {
+  const found = [];
+  let dupe;
+  arr.forEach(y => {
+    if (found.findIndex(i => i[0] === y[0] && i[1] === y[1]) > 0) {
+      if (!dupe) {
+        dupe = y;
+      };
+    } else {
+      found.push(y);
+    }
+  });
+  return dupe;
+};
+
+let allPos = [ { x: 0, y: 0, facing: 'N' } ];
 
 dirs.forEach(dir => {
-  let dupe;
+  const pos = allPos[allPos.length - 1];
   const { dirToTurn, blockCount } = splitDir(dir);
   const { x, y, facing } = pos;
   const nowFacing = nextFace(facing, dirToTurn);
-  const coord = nextCord(nowFacing, x, y, blockCount);
-  pos = {
-    ...coord,
-    facing: nowFacing,
-  };
-  if (!dupe) {
-    const p = [pos.x, pos.y];
-    console.log(`Finding:`)
-    console.log(p)
-    console.log(`In:`)
-    console.log(allPos)
-    if (allPos.indexOf(p) >= 0) {
-      console.log('hi');
-      dupe = p;
-    } else {
-      allPos.push(p);
-    };
-  }
+  const coords = nextCords(nowFacing, x, y, blockCount);
+
+  allPos = allPos.concat(
+   coords.map(c => ({
+      ...c,
+      facing: nowFacing,
+   }))
+  )
 });
 
-console.log(`Final Coord:`);
-console.log(pos);
-console.log(`First Dupe:`);
-console.log(dupe);
-console.log(`Total Blocks: ${pos.x + pos.y}`);
+const points = allPos.map(p => [p.x,  p.y ]);
+console.log(points)
+const dupe = findDupe(points);
+console.log(`Dupe: ${dupe[0] + dupe[1]}`);
+console.log(dupe)
