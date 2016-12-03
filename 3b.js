@@ -24,9 +24,7 @@ const buildTriangles = lines => {
     tri2.push(l[1]);
     tri3.push(l[2]);
     if (tri1.length === 3) {
-      tris.push(tri1);
-      tris.push(tri2);
-      tris.push(tri3);
+      tris.push(tri1, tri2, tri3)
       tri1 = []
       tri2 = []
       tri3 = []
